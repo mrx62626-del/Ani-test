@@ -186,7 +186,7 @@ export function AnimeProvider({ children }: { children: ReactNode }) {
         const parsed = Number(value);
         return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
     };
-    const getPreferredDetailsId = (target: Partial<Anime> | null | undefined): string | number | undefined => {
+    const getPreferredNumber = (target: Partial<Anime> | null | undefined): string | number | undefined => {
         const anilistId = toPositiveNumber(target?.id);
         if (anilistId > 0) return anilistId;
 
@@ -725,8 +725,8 @@ export function AnimeProvider({ children }: { children: ReactNode }) {
             try {
                 const [day, week, month] = await Promise.all([
                     anilistService.getAnimeKaiTopTrending(),
-                    anilistService.getAnimeKaiTopTrending('week'),
-                    anilistService.getAnimeKaiTopTrending('month')
+                    anilistService.getAnimeKaiTopTrending(),
+                    anilistService.getAnimeKaiTopTrending()
                 ]);
                 if (day?.data) setTopTenToday(day.data);
                 if (week?.data) setTopTenWeek(week.data);
@@ -767,12 +767,10 @@ export function AnimeProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const fetchPageData = async () => {
             const cached = anilistService.peekTopAnime();
-            if (cached?.data?.length) {
-                setTopAnime(cached.data);
-                setLastVisiblePage(cached.pagination?.last_visible_page || 1);
-                setLoading(false);
-                return;
-            }
+            if (cached) {
+				setTopAnime([]);
+				setLastVisiblePage(1);
+			}
             setLoading(true);
             try {
                 // Skip if we already have data (prevents redundant fetches on provider re-mounts)
@@ -800,7 +798,6 @@ export function AnimeProvider({ children }: { children: ReactNode }) {
 
     const resolveAndCacheEpisodes = async (anime: Anime): Promise<{ session: string | null, eps: Episode[] }> => {
         let session: string | null = null;
-        let sessionFromCache = false;
         const cacheKey = getAnimeCacheKey(anime);
 
         // Strict normalize for exact-ish comparisons.
@@ -963,7 +960,7 @@ export function AnimeProvider({ children }: { children: ReactNode }) {
 
             return Array.from(queries).slice(0, 8);
         };
-
+		
         const resolveSessionBySearch = async (): Promise<string | null> => {
             const queryList = buildScraperQueries(anime);
 
@@ -1044,14 +1041,12 @@ export function AnimeProvider({ children }: { children: ReactNode }) {
             if (cacheKey) {
                 scraperSessionCache.current.set(cacheKey, session);
             }
-            sessionFromCache = true;
         }
 
         if (!session && cacheKey && scraperSessionCache.current.has(cacheKey)) {
             const cachedSession = extractDirectScraperSession(scraperSessionCache.current.get(cacheKey));
             if (cachedSession && isAnimePaheSessionId(cachedSession)) {
                 session = cachedSession;
-                sessionFromCache = true;
             } else {
                 scraperSessionCache.current.delete(cacheKey);
             }
@@ -1329,13 +1324,13 @@ export function AnimeProvider({ children }: { children: ReactNode }) {
         const isStaleRequest = () => requestId !== detailsRequestIdRef.current;
         let currentAnime = anime;
 
-        let detailsId: string | number | undefined = getPreferredDetailsId(anime);
+        let detailsId: string | number | undefined = getPreferredNumber(anime);
 
-        const cachedDetails = detailsId ? anilistService.peekAnimeDetailsCache() : null;
-        const cachedFast = detailsId ? anilistService.peekAnimeDetailsFastCache() : null;
-        const hydratedAnime = hydrateFastDetails(cachedFast, (cachedDetails?.data || anime) as Anime);
+        const cachedDetails = Number(detailsId) ? anilistService.peekAnimeDetailsCache() : null;
+        const cachedFast = Number(detailsId) ? anilistService.peekAnimeDetailsFastCache() : null;
+        const hydratedAnime = hydrateFastDetails(cachedFast, (cachedDetails || anime) as Anime);
 
-        if (hasRenderablePrimaryDetails(hydratedAnime) || cachedDetails?.data || cachedFast?.data) {
+        if (hasRenderablePrimaryDetails(hydratedAnime) || cachedDetails || cachedFast) {
             setSelectedAnime(hydratedAnime);
         } else {
             setSelectedAnime(null);
@@ -1352,7 +1347,7 @@ export function AnimeProvider({ children }: { children: ReactNode }) {
 
         setWatchedEpisodes(new Set());
         setError(null);
-        setDetailsLoading(!(cachedDetails?.data || cachedFast?.data || hasRenderablePrimaryDetails(anime)));
+        setDetailsLoading(!(cachedDetails || cachedFast || hasRenderablePrimaryDetails(anime)));
 
         const shouldPreloadEpisodesImmediately = !hydratedEpisodesApplied && Boolean(
             isAnimePaheSessionId(extractDirectScraperSession(anime.scraperId)) ||
@@ -1365,11 +1360,11 @@ export function AnimeProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-            detailsId = getPreferredDetailsId(anime);
-            if (!detailsId) throw new Error('Could not identify anime ID');
+            detailsId = getPreferredNumber(anime);
+            if (!Number(detailsId)) throw new Error('Could not identify anime ID');
 
             let fastPromiseSettled = false;
-            const fastPromise = anilistService.getAnimeDetailsFast(detailsId)
+            const fastPromise = anilistService.getAnimeDetailsFast(Number(detailsId))
                 .catch(() => null)
                 .finally(() => {
                     fastPromiseSettled = true;
@@ -1396,22 +1391,22 @@ export function AnimeProvider({ children }: { children: ReactNode }) {
             }
 			
 			if (
-				typeof detailsId === "string" &&
-				detailsId.startsWith("s:")
+				typeof Number(detailsId) === "string" &&
+				String(detailsId).startsWith("s:")
 			) {
 				return;
 			}
 
 			const detailsData =
 				await anilistService.getAnimeDetails(
-					detailsId
+					Number(detailsId)
 				);
 
 			if (isStaleRequest()) return;
 
             if (detailsData?.data) {
                 currentAnime = detailsData.data;
-                if (detailsId && String(detailsId).startsWith('s:')) {
+                if (Number(detailsId) && String(Number(detailsId)).startsWith('s:')) {
                     if ((detailsData.data as any).scraperId) currentAnime.scraperId = (detailsData.data as any).scraperId;
                 }
                 setSelectedAnime(currentAnime);
@@ -1510,8 +1505,8 @@ export function AnimeProvider({ children }: { children: ReactNode }) {
         }
 
         const detailsId = anime.id || anime.mal_id;
-        if (detailsId) {
-            anilistService.getAnimeDetailsFast(detailsId).catch(() => undefined);
+        if (Number(detailsId)) {
+            anilistService.getAnimeDetailsFast(Number(detailsId)).catch(() => undefined);
         }
     };
 

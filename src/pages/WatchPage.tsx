@@ -79,8 +79,6 @@ export default function WatchPage() {
         setAutoQuality,
         setSelectedAudio,
         setIsPlayerReady,
-        handlePlaybackProgress,
-        handleStreamError,
         navigate
     } = usePlayer(id, title);
 
@@ -217,7 +215,6 @@ export default function WatchPage() {
                                         streamExhausted={streamExhausted}
                                         hasPlayableSource={!currentEpisode || Boolean(currentStream?.url) || streamLoading}
                                         onLoad={() => setIsPlayerReady(true)}
-                                        onProgress={handlePlaybackProgress}
                                     />
                                 </div>
 

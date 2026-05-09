@@ -40,9 +40,9 @@ export default function AnimeFormatPage() {
 
         // Instant paint from cache for faster navigation.
         const cached = animeService.peekTopAnime();
-        if (cached?.data?.length) {
-            setAnimeList(cached.data);
-            setLastPage(cached?.pagination?.last_visible_page ?? 1);
+        if (cached) {
+            setAnimeList([]);
+            setLastPage(1);
             setIsLoading(false);
         } else {
             setIsLoading(true);
@@ -55,7 +55,7 @@ export default function AnimeFormatPage() {
 
             const nextPage = page + 1;
             if ((result?.pagination?.last_visible_page ?? 1) >= nextPage) {
-                animeService.getTopAnime(nextPage, config.anilistFormat).catch(() => undefined);
+                animeService.getTopAnime(nextPage).catch(() => undefined);
             }
         } catch (e) {
             console.error('AnimeFormatPage fetch error:', e);
@@ -75,7 +75,7 @@ export default function AnimeFormatPage() {
 
         const nextPage = currentPage + 1;
         if (nextPage <= lastPage) {
-            animeService.getTopAnime(nextPage, config.anilistFormat).catch(() => undefined);
+            animeService.getTopAnime(nextPage).catch(() => undefined);
         }
     }, [config, currentPage, lastPage]);
 
@@ -84,7 +84,7 @@ export default function AnimeFormatPage() {
 
         const cached = animeService.peekTopAnime();
         setCurrentPage(page);
-        if (!cached?.data?.length) {
+        if (!cached) {
             setIsLoading(true);
         }
         fetchData(page);

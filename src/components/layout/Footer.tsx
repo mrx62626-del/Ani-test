@@ -27,7 +27,7 @@ const Footer = () => {
         return () => window.clearTimeout(warmupId);
     }, [isManga]);
 
-    const prefetchLetter = (letter: string) => {
+    const prefetchLetter = () => {
         if (isManga) return;
         animeService.prefetchAZList().catch(() => undefined);
     };
@@ -99,9 +99,9 @@ const Footer = () => {
                             key={abc}
                             to={`/search?q=${encodeURIComponent(abc)}&type=${isManga ? 'manga' : 'anime'}`}
                             onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
-                            onMouseEnter={() => prefetchLetter(abc)}
-                            onFocus={() => prefetchLetter(abc)}
-                            onTouchStart={() => prefetchLetter(abc)}
+                            onMouseEnter={() => prefetchLetter()}
+                            onFocus={() => prefetchLetter()}
+                            onTouchStart={() => prefetchLetter()}
                             className={`px-2.5 py-1.5 rounded-lg text-sm font-semibold bg-white/5 text-gray-300 transition-all duration-200 ${bgHover} hover:text-white border border-transparent hover:border-white/10`}
                         >
                             {abc}

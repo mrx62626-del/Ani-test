@@ -1,4 +1,3 @@
-import { animeService } from '../../services/animeService';
 import { mangaService } from '../../services/mangaService';
 import type { TitleLanguage } from '../../context/TitleLanguageContext';
 import { getDisplayTitle, getSecondaryTitle } from '../../utils/titleLanguage';
@@ -18,8 +17,8 @@ export interface SearchPreviewItem {
 }
 
 export const searchApi = {
-    async getAnimePreview(query: string, language: TitleLanguage) {
-        const { data } = await (query, 1, 6);
+    async getAnimePreview(_query: string, language: TitleLanguage) {
+        const data: any[] = [];
         return data.slice(0, 4).map((item: any) => ({
             id: item.scraperId || item.id,
             title: getDisplayTitle(item, language),

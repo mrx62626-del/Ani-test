@@ -1,0 +1,137 @@
+import { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { animeService } from '../../services/animeService';
+
+const Footer = () => {
+    const location = useLocation();
+
+    const isManga =
+        location.pathname.startsWith('/manga') ||
+        location.search.includes('type=manga') ||
+        location.search.includes('tab=continue-reading') ||
+        location.search.includes('tab=readlist');
+
+    const accentColor = isManga ? 'text-yorumi-manga' : 'text-yorumi-accent';
+    const accentHover = isManga ? 'hover:text-yorumi-manga' : 'hover:text-yorumi-accent';
+    const bgHover = isManga ? 'hover:bg-yorumi-manga' : 'hover:bg-yorumi-accent';
+
+    const alphabets = ['All', '#', '0-9', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
+
+    useEffect(() => {
+        if (isManga) return;
+
+        const warmupId = window.setTimeout(() => {
+            animeService.prefetchAZList().catch(() => undefined);
+        }, 250);
+
+        return () => window.clearTimeout(warmupId);
+    }, [isManga]);
+
+    const prefetchLetter = (letter: string) => {
+        if (isManga) return;
+        animeService.prefetchAZList().catch(() => undefined);
+    };
+
+    return (
+        <footer className="relative bg-[#0a0a0a] pt-12 pb-8 border-t border-white/5 overflow-hidden">
+            <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8">
+                
+                {/* Top Section */}
+                <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-8 mb-10 border-b border-white/5 pb-8">
+                    
+                    {/* Logo */}
+                    <Link
+                        to={isManga ? '/manga' : '/'}
+                        className="flex items-center gap-2 group select-none"
+                    >
+                        <div className="flex items-center">
+                            <span className="text-3xl font-black text-white tracking-tighter">
+                                An!
+                            </span>
+                            <span
+                                className={`text-3xl font-black ${accentColor} tracking-tighter transition-colors duration-300`}
+                            >
+                                stream
+                            </span>
+                        </div>
+                    </Link>
+
+                    {/* Separator */}
+                    <div className="hidden md:block w-px h-8 bg-white/10"></div>
+
+                    {/* Socials */}
+                    <div className="flex items-center gap-3">
+                        <a
+                            href="https://instagram.com/anistream.online"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white transition-all duration-300 hover:bg-[#29ABE0] hover:scale-110"
+                            title="Instagram"
+                        >
+                            <img
+                                src="https://upload.wikimedia.org/wikipedia/commons/2/28/Instagram_logo.png"
+                                alt="Instagram"
+                                className="w-5 h-5 object-contain"
+                            />
+                        </a>
+                    </div>
+                </div>
+
+                {/* A-Z List Header */}
+                <div className="flex flex-col md:flex-row items-center md:items-baseline gap-4 mb-8 text-center md:text-left">
+                    <span className="text-xl font-bold text-white shrink-0">
+                        A-Z LIST
+                    </span>
+
+                    <span className="text-sm text-gray-400 border-l border-white/10 pl-4 h-full hidden md:flex items-center">
+                        Searching {isManga ? 'manga' : 'anime'} order by alphabet name A to Z.
+                    </span>
+
+                    <span className="text-sm text-gray-400 md:hidden">
+                        Searching order by alphabet name A to Z.
+                    </span>
+                </div>
+
+                {/* A-Z Buttons */}
+                <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-10">
+                    {alphabets.map((abc) => (
+                        <Link
+                            key={abc}
+                            to={`/search?q=${encodeURIComponent(abc)}&type=${isManga ? 'manga' : 'anime'}`}
+                            onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
+                            onMouseEnter={() => prefetchLetter(abc)}
+                            onFocus={() => prefetchLetter(abc)}
+                            onTouchStart={() => prefetchLetter(abc)}
+                            className={`px-2.5 py-1.5 rounded-lg text-sm font-semibold bg-white/5 text-gray-300 transition-all duration-200 ${bgHover} hover:text-white border border-transparent hover:border-white/10`}
+                        >
+                            {abc}
+                        </Link>
+                    ))}
+                </div>
+
+                {/* Bottom Links */}
+                <div className="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-4 text-sm font-medium text-gray-300 mb-6 border-t border-white/5 pt-8">
+                    <a href="#" className={`transition-colors ${accentHover}`}>
+                        Terms of service
+                    </a>
+                    <a href="#" className={`transition-colors ${accentHover}`}>
+                        DMCA
+                    </a>
+                    <a href="#" className={`transition-colors ${accentHover}`}>
+                        Contact
+                    </a>
+                </div>
+
+                {/* Disclaimer */}
+                <div className="space-y-2 text-xs text-gray-500 text-center md:text-left">
+                    <p>
+                        Anistream does not store any files on our server, we only link to media hosted on 3rd party services.
+                    </p>
+                    <p>© anistream.online. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    );
+};
+
+export default Footer;

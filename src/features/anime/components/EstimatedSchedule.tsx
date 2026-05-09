@@ -99,7 +99,7 @@ export default function EstimatedSchedule({ onAnimeClick }: EstimatedSchedulePro
 
     useEffect(() => {
         const fetchSchedule = async () => {
-            const { startTime, endTime, dayKey } = getDayRange(selectedDayOffset);
+            const { dayKey } = getDayRange(selectedDayOffset);
             const cachedSchedule = readScheduleCache(dayKey);
 
             if (cachedSchedule) {

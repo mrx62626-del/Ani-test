@@ -40,7 +40,7 @@ const query = async (
       );
 
       return query(
-        query,
+        String(query),
         variables,
         retry + 1
       );

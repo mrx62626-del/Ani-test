@@ -179,7 +179,7 @@ export function useEpisodeNotifications() {
                         }
 
                         const cached = animeService.peekAnimeDetailsCache();
-                        const details = cached || await animeService.getAnimeDetails(id);
+                        const details = cached || await animeService.getAnimeDetails(Number(id));
                         const anime = details?.data as Anime | null;
                         if (!anime) return null;
 

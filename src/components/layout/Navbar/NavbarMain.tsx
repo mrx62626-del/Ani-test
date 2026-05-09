@@ -1,8 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, X, Menu, ChevronLeft, Plus, Users } from 'lucide-react';
-import { animeService } from '../../../services/animeService';
-import { mangaService } from '../../../services/mangaService';
 import { useAuth } from '../../../context/AuthContext';
 import SearchBar from './SearchBar';
 import NavToggle from './NavToggle';
@@ -103,16 +101,8 @@ export default function Navbar({
         if (isLoadingRandom) return;
         setIsLoadingRandom(true);
         try {
-            if (activeTab === 'manga') {
-                const result = await mangaService.getRandomManga();
-                if (result && result.id) {
-                    navigate(`/manga/details/${result.id}`, { state: { fromRandom: true } });
-                }
-            } else {
-                const result = null;
-                if (result && result.id) {
-                    navigate(`/anime/details/${result.id}`, { state: { fromRandom: true } });
-                }
+            if (activeTab === 'manga') {             
+                
             }
         } catch (error) {
             console.error('Failed to get random media:', error);
